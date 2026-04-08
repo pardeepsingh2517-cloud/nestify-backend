@@ -81,10 +81,10 @@ const Col = {
 // ─────────────────────────────────────────────
 // RAZORPAY INIT
 // ─────────────────────────────────────────────
-const razorpay = new Razorpay({
-  key_id:     process.env.RAZORPAY_KEY_ID     || '',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || '',
-});
+// Razorpay — optional, only init if keys are present
+const razorpay = (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)
+  ? new Razorpay({ key_id: process.env.RAZORPAY_KEY_ID, key_secret: process.env.RAZORPAY_KEY_SECRET })
+  : null;
 
 // ─────────────────────────────────────────────
 // CONSTANTS
@@ -301,6 +301,7 @@ app.post('/api/payment/create-order', async (req, res) => {
     const { plan, email, name } = req.body;
     if (!plan || !email) return res.status(400).json({ error: 'plan and email required' });
     if (!PLANS[plan] || plan === 'free') return res.status(400).json({ error: 'Invalid plan' });
+    if (!razorpay) return res.status(503).json({ error: 'Payment not configured yet' });
 
     const planInfo = PLANS[plan];
     const order = await razorpay.orders.create({
