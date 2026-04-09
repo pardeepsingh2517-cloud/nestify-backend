@@ -184,15 +184,9 @@ function logUsage(key, action, ip) {
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(express.json());
 
-const origins = (process.env.ALLOWED_ORIGINS || '*').split(',').map(s => s.trim());
-app.use(cors({
-  origin: origins.includes('*') ? '*' : (o, cb) => {
-    if (!o || origins.includes(o)) cb(null, true);
-    else cb(new Error('CORS blocked: ' + o));
-  },
-  methods: ['GET','POST','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization'],
-}));
+// CORS — allow all (supports file:// local HTML)
+app.use(cors({ origin: '*', methods: ['GET','POST','DELETE','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'] }));
+app.options('*', cors());
 
 app.use('/api/license', rateLimit({ windowMs: 60000, max: 30 }));
 app.use('/api/payment', rateLimit({ windowMs: 60000, max: 20 }));
